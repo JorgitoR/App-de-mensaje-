@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+
+
+
+{% block contenido  %}
+
+<style>
+    
+    .main_principal{
+        width: 70%;
+        margin: auto;
+        position: relative;
+        flex-direction: column;
+    }
+
+    #contenedor_ms {
+        height: calc(70vh);
+        width: 100%;
+        margin: 5px 0;
+        overflow-y: scroll;
+        float: right;
+        border-bottom: 1px solid #e6e6e6;
+    }
+
+    .div_form_ms{
+
+        width: 100%;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-left: -3px;
+        border: 1px solid #e6e6e6;
+    }
+
+    .my-3 {
+        margin: 1.2rem auto;
+    }
+    .w-35 {
+        
+        width: 35%;
+        margin: 
+
+    }
+    .mr-0 {
+        margin-right: 5px !important;
+    }
+    .ml-0 {
+        margin-left: 5px !important;
+    }
+    .bg-primary {
+        background-color: rgb(29, 161, 242)!important;
+    }
+    .bg-secondary {
+        background-color: rgb(230, 236, 240)!important;
+    }
+    .text-white {
+        color: #fff !important;
+
+    }
+    .rounded_my {
+    
+        border-bottom-left-radius: 1.25rem;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 1.25rem;
+        border-top-right-radius: 1.25rem;
+    }
+
+    .rounded_you{
+
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 1.25rem;
+        border-top-left-radius: 1.25rem;
+        border-top-right-radius: 1.25rem;
+
+
+    }
+
+    .px-1 {
+        padding: 0.2rem 0.6rem 0.2rem 0.6rem;
+    }
+
+
+    #id_content{
+
+        display: block;
+        padding: 6px 12px;
+        margin-left: 1%;
+        margin-right: 1%;
+        box-sizing: border-box;
+        font-size: 14px;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+
+        width: 98%;
+        min-width: 98%;
+        max-width: 98%;
+        height: 40px;
+        min-height: 40px;
+        max-height: 70px;
+
+    }
+
+
+    #enviar_ms{
+
+        width: 140px;
+        background: rgb(29, 161, 242);
+        -webkit-box-shadow: 0 1px 1px 0 #58902d;
+        box-shadow: 0 1px 1px 0 #03A9F4;
+        border: none;
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: block;
+        margin: 10px auto;
+        font-family: 'Lato', sans-serif;
+        font-size: 13px;
+        padding: 8px 0.8em 6px 0.8em;
+        text-decoration: none;
+        transition: 0.5;
+        vertical-align: middle;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        outline: none;
+
+
+
+    }
+   
+</style>
+
+<div class="main_principal">
+
+ Id- {{ object.id }}
+
+
+    <div id='contenedor_ms'>
+    
+	   {% for Ms in object.chanelmensaje_set.all %}
+            <div class='my-3 w-35 px-1  {% if request.user == Ms.usuario %}mr-0 bg-primary text-white rounded_my{% else %}rounded_you  bg-secondary ml-0{% endif %}'>
+            
+            <b>{{Ms.usuario}}</b>
+
+            <p>{{Ms.content}}</p>
+            </div>
+            <small>{{Ms.get_datetime}}</small>
+        {% endfor %}
+
+
+    </div>
+
+    <div class="div_form_ms">
+
+        <form id='message-form' action="{{ request.path }}" method='POST'> 
+        
+            {% csrf_token %}
+            
+            <div class="widget_form">
+                
+                <div class="text_area">
+                    
+                        <textarea name="content" cols="40" rows="10" class="formulario" placeholder="Escribe tu mensaje" required="" id="id_content"></textarea>
+
+                </div>
+
+                <div class="div_enviar">
+                    
+                        <input type='submit' value='Enviar' id="enviar_ms" />
+
+                </div>
+
+            </div>
+
+        
+        </form>
+
+    </div>
+
+
+
+</div>
+
+<script>
+    // async javascript request
+    const msgForm = document.getElementById("message-form")
+    const msgContainer = document.getElementById("contenedor_ms")
+    
+    function scrollBottom (el){
+        el.scrollTop = el.scrollHeight
+    }
+    scrollBottom(msgContainer)
+
+    msgForm.addEventListener("submit", (event)=>{
+        event.preventDefault()
+        const targetData = event.target
+        const formData = new FormData(targetData)
+        const xhr = new XMLHttpRequest() // fetch
+        const endpoint = msgForm.getAttribute("action")
+        const method = msgForm.getAttribute("method")
+        xhr.open(method, endpoint)
+        //
+        xhr.responseType = 'json'
+        xhr.setRequestHeader("HTTP_X_REQUESTED_WITH", "XMLHttpRequest")
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+        xhr.onload = () => {
+            // const myJsonResponse = JSON.parse(xhr.response)
+            // console.log(xhr.status, xhr.response)
+            if (xhr.status === 201) {
+                const responseData = xhr.response
+                let currentMsgHtml = msgContainer.innerHTML
+                currentMsgHtml += `<div class='my-3 w-35 px-1 rounded mr-0 bg-primary text-white'><b>${responseData.username}</b><p>${responseData.content}</p></div>`
+                msgContainer.innerHTML = currentMsgHtml
+                scrollBottom(msgContainer)
+                msgForm.reset()
+            } else if (xhr.status === 400) {
+                console.log(xhr.response)
+            } else {
+                alert("An error occurred. Please try again later.")
+            }
+        }
+
+        xhr.send(formData)
+    })
+</script>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block contenido  %}
+
+<h1>Tu eres {{user}}</h1>
+
+{% load socialaccount %}
+{% providers_media_js %}
+<a href="{% provider_login_url "facebook" method="js_sdk" %}">Facebook Connect</a>
+	{% for dialogo in dialogo %}	
+
+{% load socialaccount %}
+<a href="{% provider_login_url "facebook" method="oauth2" %}">Facebook OAuth2</a>
+
+
+		{% for userM in dialogo.chaneluser_set.all %}
+				
+				{% if request.user == userM.user %}
+
+				{% else %}
+				<a href="{% url 'usern' userM.user.username %}">
+				<p>
+					{{userM.user}}
+				</p>
+				</a>
+				{% endif %}	
+
+		{% endfor %}
+
+			{% if dialogo.chanelmensaje_set.count != 0 %}
+
+			({{ dialogo.chanelmensaje_set.count }}) 
+
+			<div style="background: #e6e6e6; width: 80%; margin: auto;">
+				
+		        {% with last_message=dialogo.chanelmensaje_set.last %}
+
+				<p>
+					Ultimo mensaje: {{last_message.content}}
+				</p>
+
+				<p>
+					Usuarios: {{last_message.usuario}}
+				</p>
+
+
+                {% endwith %}
+
+            </div>
+
+            {% endif %}
+
+		{% for ms in dialogo.chanelmensaje_set.all %}
+
+
+                {% with last_message=ms.content.last %}
+
+				<p>
+					{{last_message}}
+				</p>
+
+
+                {% endwith %}
+
+		{% endfor %}
+
+		<a href="{% url 'mss' dialogo.pk %}">
+		<p>
+			{{dialogo}}
+		</p>
+		</a>
+
+
+	{% endfor %}
+
+{% endblock %}
